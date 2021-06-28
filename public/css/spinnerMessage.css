@@ -1,0 +1,27 @@
+.spinnerMessage{
+    position: relative;
+    text-align: center;
+    box-shadow: 0 1px 3px 0 rgba(8, 23, 48, 0.2),
+    0 4px 9px 1px rgba(8, 23, 48, 0.15);
+    padding: auto;
+    height: 30vh;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.spinnerMessageInner-top{
+    position: absolute;
+    height: 50%;
+    top: 10%;
+    left:50%;
+    transform: translateX(-50%);
+}
+
+.spinnerMessageInner-bottom{
+    position: absolute;
+    height: 50%;
+    bottom: 35%;
+    left:46%;
+    transform: translateX(-50%);
+}
