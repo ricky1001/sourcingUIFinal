@@ -10,7 +10,7 @@
         </dl>
       </div>
     </div>
-    <input type="checkbox" class="read__more__state" aria-label="Read more information about product" id="0">
+    <input type="checkbox" class="read__more__state" aria-label="Read more information about product" id="<%=pd.ProductCode%>">
     <div class="table-card__contentRow read__more__wrap">
       <dl class="table-card__contentInnerRow">
         <div class="table-card__contentRow__item">
@@ -58,7 +58,7 @@
         <dd class="table-card__contentRow__itemNumber true-cost-number">£<%=pd.TrueCostOverInitialPeriod%></dd>
       </div>
     </dl>
-    <div class="table-card__expandInnerRow">
+    <div id="<%=pd.ProductCode%>" class="table-card__expandInnerRow">
       <p>• <% if(args.input.MortgageType === "Buy_To_Let"){ %>
         Buy to Let 
       <% } else if(args.input.MortgageType === "Let_To_Buy") { %>
@@ -66,25 +66,23 @@
       <% } else { %>
        Residential 
       <% } %> 
-
       <% if(args.input.PaymentMethod === "Repayment"){ %>
           capital repayment 
       <% } else { %>
           interest only 
       <% } %>
           mortgage. Standard variable rate <%=pd.StandardVariableRate%>% • Cash Back £<%= pd.Cashback %> • Total fees £<%=pd.FeesTotal%> • The maximum early repayment charge you could pay in the first <%=pd.InitialRatePeriodInWholeYears%> years would be £<%=pd.EarlyRepaymentChargePeriodSortField%></p><p>Your rate of <%=pd.InitialPayRate%>% will last for the first <%=pd.InitialRatePeriodMonths%> months of your mortgage (the 'initial period'). After that, you'll switch to the lender's standard variable rate (SVR). For <%=pd.LenderName%> that's <%=pd.StandardVariableRate%>%. Based on what you've told us, your loan to value (LTV) is <%= pd.ltv%>%. The total cost of this mortgage is £<%=pd.TrueCostFullTerm%>. That's the total cost you will pay over the whole term of the mortgage.
-      
-     
-
       </p>
     </div>
   </div>
   <div class="table-card__bottomRow">
     <div class="table-card__bottomInnerRow">
-      <label for="0" class="read__more__trigger">
+
+      <label for="<%=pd.ProductCode%>" class="read__more__trigger"> <!--0-->
         <span class="toggle__less__chevron"></span>
         <span class="toggle__more__chevron"></span>
       </label>
+
       <button class="table-card__bottomRow__button" type="button">
         <a class="table-card__bottomRow__buttonText" 
           href="https://form.typeform.com/to/IL4dmz9q?typeform-medium=embed-snippet" 
@@ -95,6 +93,8 @@
           >
           Continue 
         </a> 
+
+        
         <!--
         <script> 
           (function() { 
