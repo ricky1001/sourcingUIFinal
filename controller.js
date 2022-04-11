@@ -8,7 +8,10 @@ const url = require("url")
 var Url = require('url-parse');
 const { parse } = require("path");
 const { Console } = require("console");
-const fs = require("fs")
+
+const staticProducts = require("staticProducts/firstTimeBuyer.json");
+console.log(staticProducts)
+
 
 let args = {
   licenseKey: "89a6a144-2cde-46b0-b396-b1363d883fe1",
@@ -37,43 +40,30 @@ let args = {
   },
 };
 
-//TestTypeformroute
-
-exports.testTypeForm = (req, res, next) => {
-  res.render("test-type-form")
-}
-
 
 exports.getProducts = (req, res, next) => {
-  fs.readFile("staticProducts/pageLoad.json", "utf8", (err, data) => {
-    if(err){
-      console.log(err)
-    }else{
-    let products = JSON.parse(data);
-
-    //Remove all products that are not 2 year fixed
-    let newArray = [];
-    products.forEach(function(item){
-      if(item.InitialRatePeriodInWholeYears === "2"){
-        newArray.push(item)
+  soap.createClient(requestUrl, function (err, client) {
+    client.RunSource(args, function (err, result) {
+      if (err) {
+        console.log("error");
+      } else {
+        let products = result.RunSourceResult.Results.Results;
+      
+        addDetailsToProducts(products, args)
+        
+        return res.render("index", {
+          products,
+          args: args,
+          productHTML: compileEJS(products, args),
+        });
       }
-    })
-
-    products = newArray
-    console.log("Not Calling api")
-    return res.render("index", {
-      products,
-      args: args,
-      reqObj: args.input,
-      productHTML: compileEJS(products, args),
     });
-    }
   });
-  
 };
 
 exports.typeAndUpdateCombined = (req, res, next) => {
-    console.log("Calling api")
+    
+
   //Check to see the original URL and include an if statement, if the request has came from typeform or locally requesting an update to the products
   const origUrl = req.originalUrl
   let reqObj = {};
@@ -91,18 +81,18 @@ exports.typeAndUpdateCombined = (req, res, next) => {
 
     //Set the required License Keys 
     args.input = reqObj;
-    console.log("args below")
-    console.log(args)
+
+
+
+  console.log(args)
   // Send the request to the api 
   soap.createClient(requestUrl, function (err, client) {
     client.RunSource(args, function (err, result) {
       if (err) {
-       console.log("logging error")
         console.log(err);
       } else {
-        let filteredProducts = [];
-        console.log("result Below")
-        console.log(result)
+        let filteredProducts;
+
         //If the request is coming from the update route we will need to run thhe additional filters at the moment these will be skippped for typeform response but can be added by building the same request object base on the questions asked any questions added to the typeform will need to be built into the request object using the url deconstructor function
        if(result.RunSourceResult.Results != null){
          
@@ -122,36 +112,29 @@ exports.typeAndUpdateCombined = (req, res, next) => {
                      
                   //Call Function to filter the products based on the initial term length ie 2 year etc
                       filteredProducts = initialTermFilter(filteredProducts, args)
-                      console.log(args.input.sortBy)
-
-                  //Call function to sort products depending on preset filter 
-                      sortProducts(args.input.sortBy, filteredProducts)
-
                   }else{
                   filteredProducts = result.RunSourceResult.Results.Results;
                 
                   }
                 //Filter the request in order to do this we need to build the user interface and the typeform to collect the same data or else we can exclude type form requests from the filtering by returning early at present the 2, 3, 5 year option is not included in the typeform example There are currently 3 additional filters that need to be applied to an update product request sortBy, initialTermLength
-             
+      
               if(origUrl.includes("/typeform-data") ){
                 //If the request is coming from a url that contains typeform we will need to render the new sourcing page
                        // Check the result 
               if (filteredProducts === null) {
                 //If the result is empty 
-                console.log("rendering with no products")
+              
                 res.render("index", {
-                  filteredProducts,
-                  products: [],
                   args,
                   reqObj,
                   message: "get data successfully!",
                   noProductMessage:
                     "I am sorry there are no products available that match your criteria please change the settings and try again",
+              
                 });
               } else {
                 //Adding to them request Object to match other routes
                 res.render("index", {
-                  products: filteredProducts,
                   filteredProducts,
                   reqObj,
                   args,
@@ -166,9 +149,7 @@ exports.typeAndUpdateCombined = (req, res, next) => {
                     return res.status(200).json({
                       status: 200,
                       message: "get data successfully!",
-                      products: compileEJS(filteredProducts, args),
-                      numberOfProducts: filteredProducts.length
-
+                      products: compileEJS(filteredProducts, args)
                       
                     });
              
@@ -176,7 +157,6 @@ exports.typeAndUpdateCombined = (req, res, next) => {
                   return res.status(200).json({
                     status: 200,
                     message: "get data successfully!",
-                    numberOfProducts: filteredProducts.length,
                     noProductMessage:
       
                       `<div class="noProductMessage">
@@ -188,40 +168,17 @@ exports.typeAndUpdateCombined = (req, res, next) => {
                 }
               }
        } else{
-        console.log("We Should Be Here bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-        if(origUrl.includes("/typeform-data") ){
-          //If the request is coming from a url that contains typeform we will need to render the new sourcing page
-                 // Check the result 
-          res.render("index", {
-            filteredProducts,
-            products: [],
-            args,
-            reqObj,
-            message: "get data successfully!",
-            productHTML:
-            `<div class="noProductMessage">
-            <div class="noProductMessageInner">
-               I am sorry there are no products available that match your criteria please change the filters above and try again!
-            </div>
-        </div>`
-          });
+        return res.status(200).json({
+          status: 200,
+          message: "get data successfully!",
+          noProductMessage:
 
-        } else {
-          //Adding to them request Object to match other routes
-          return res.status(200).json({
-            products: filteredProducts,
-            args,
-            reqObj,
-            status: 200,
-            message: "get data successfully!",
-            noProductMessage:
-              `<div class="noProductMessage">
-                  <div class="noProductMessageInner">
-                     I am sorry there are no products available that match your criteria please change the filters above and try again!
-                  </div>
-              </div>`
-          });
-        }
+            `<div class="noProductMessage">
+                <div class="noProductMessageInner">
+                   I am sorry there are no products available that match your criteria please change the filters above and try again!
+                </div>
+            </div>`
+        });
        }
 
       }
@@ -229,34 +186,6 @@ exports.typeAndUpdateCombined = (req, res, next) => {
   });
 
 
-}
-
-//Function to sort product depending on Monthly Repayment etc
-function sortProducts(str, arr){
-  if(str === "normalisedTrueCost"){
-    console.log("sorting true cost")
-    arr.sort((a, b) => parseFloat(a.TrueCostOverInitialPeriod) - parseFloat(b.TrueCostOverInitialPeriod))
-  
-  }else if(str === "initialPeriodMonthlyPayment"){
-    console.log("sorting initial monthly payment ")
-    arr.sort((a, b) => parseFloat(a.InitialMonthlyPayment) - parseFloat(b.InitialMonthlyPayment))
-  
-  }else if(str === "totalFees"){
-    console.log("sorting total fees")
-    arr.sort((a, b) => parseFloat(a.FeesTotal) - parseFloat(b.FeesTotal))
- 
-  }else if(str === "initialPeriodRate"){
-    console.log("sorting initial rate")
-    arr.sort((a, b) => parseFloat(a.InitialPayRate) - parseFloat(b.InitialPayRate))
-  
-  }else if(str === "svrPeriodRate"){
-    console.log("sorting svr rate")
-    arr.sort((a, b) => parseFloat(a.StandardVariableRate) - parseFloat(b.StandardVariableRate))
-  
-  }else if(str === "apr"){
-    console.log("sorting apr")
-    arr.sort((a, b) => parseFloat(a.AprLenders) - parseFloat(b.AprLenders))
-  }
 }
 
 
@@ -305,7 +234,7 @@ const typeformUrlDeconstructor = function(url, obj){
   
     //Setting the Mortgage Type 
       //Build the args object from the query parameters
-      if(obj.MortgageType === "Buy_To_Let"){
+      if(obj.MortgageType === "Buy to Let"){
         
         obj.MortgageType = "Buy_To_Let"
       }else if(obj.MortgageType === "Let to Buy"){
