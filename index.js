@@ -29,7 +29,9 @@ app.get("/typeform-data", controller.typeAndUpdateCombined)
 //Sourcing update routes --- end 
 
 // test typeform route
-app.get("/test-typeform", controller.testTypeForm)
+app.get("/test-typeform", function(req, res){
+  res.render("test-type-form");
+})
 
 
 
