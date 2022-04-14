@@ -9,8 +9,11 @@ var Url = require('url-parse');
 const { parse } = require("path");
 const { Console } = require("console");
 
-const staticProducts = require("staticProducts/firstTimeBuyer.json");
-console.log(staticProducts)
+const jsonData = require("./staticProducts/pageLoad.json");
+console.log(jsonData);
+
+
+
 
 
 let args = {
@@ -41,23 +44,23 @@ let args = {
 };
 
 
-exports.getProducts = (req, res, next) => {
-  soap.createClient(requestUrl, function (err, client) {
-    client.RunSource(args, function (err, result) {
-      if (err) {
-        console.log("error");
-      } else {
-        let products = result.RunSourceResult.Results.Results;
+
+
+
+let products = jsonData;//result.RunSourceResult.Results.Results;
       
-        addDetailsToProducts(products, args)
+
+
+
+
+exports.getProducts = (req, res, next) => {
+  addDetailsToProducts(products, args)
         
-        return res.render("index", {
-          products,
-          args: args,
-          productHTML: compileEJS(products, args),
-        });
-      }
-    });
+  return res.render("index", {
+    products,
+    args: args,
+    reqObj: args,
+    productHTML: compileEJS(products, args),
   });
 };
 
