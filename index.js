@@ -43,6 +43,8 @@ const fs = require("fs");
 //Sourcing Page Load
 setInterval(function(){
 
+  
+
     soap.createClient(requestUrl, function (err, client) {
         client.RunSource(argsSourcingPageLoad, function (err, result) {
           if (err) {
@@ -66,7 +68,7 @@ setInterval(function(){
         });
       });
 
-  }, 10000000);
+  }, 1000);
 
 //First Time Buyer Page Load
 setInterval(function(){
